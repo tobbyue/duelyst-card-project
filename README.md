@@ -124,6 +124,9 @@ duelyst-card-project/
 | #18 | Game Initialization & Setup | ✅ Done | Minghao |
 | #19 | Mana Increase | ✅ Done | Minghao |
 | #22 | Summon Tile Highlighting | ✅ Done | Minghao |
+| #14 | Game Animations (replaces original SC#14) | ✅ Done | Minghao |
+
+> SC#14 has been repurposed to cover missing game animations (walk, idle, summon effect, spell effects, channel). See [`Project Assignment/SC14-Game-Animations.md`](Project%20Assignment/SC14-Game-Animations.md) for the full story card and acceptance tests.
 
 ## Test Coverage
 

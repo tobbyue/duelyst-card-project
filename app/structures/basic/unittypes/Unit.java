@@ -9,6 +9,7 @@ import structures.basic.*;
 import structures.basic.players.Player;
 import structures.logic.BoardLogic;
 import utils.BasicObjectBuilders;
+import utils.StaticConfFiles;
 
 /**
  * This is a representation of a Unit on the game board.
@@ -311,9 +312,9 @@ public class Unit {
 			clickedTile.setUnit(wraithling);
 
 			BasicCommands.drawUnit(out, wraithling, clickedTile);
-			for (int i = 0; i < 10; i++) {
-				BoardLogic.blink();
-			}
+			EffectAnimation summonEffect = BasicObjectBuilders.loadEffect(StaticConfFiles.f1_summon);
+			try { Thread.sleep(BasicCommands.playEffectAnimation(out, summonEffect, clickedTile)); }
+			catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 			BasicCommands.setUnitHealth(out,wraithling,wraithling.getHealth());
 			for (int i = 0; i < 10; i++) {
 				BoardLogic.blink();

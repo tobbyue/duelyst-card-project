@@ -3,9 +3,11 @@ package events;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import akka.actor.ActorRef;
+import commands.BasicCommands;
 import structures.GameState;
 import structures.logic.BoardLogic;
 import structures.basic.Tile;
+import structures.basic.UnitAnimationType;
 import structures.basic.unittypes.Unit;
 
 /**
@@ -45,6 +47,7 @@ public class UnitStopped implements EventProcessor {
 		targetTile.setUnit(movingUnit);
 
 		movingUnit.hasMoved = true;
+		BasicCommands.playUnitAnimation(out, movingUnit, UnitAnimationType.idle);
 
 		gameState.movingUnit = null;
 		gameState.moveTargetTile = null;

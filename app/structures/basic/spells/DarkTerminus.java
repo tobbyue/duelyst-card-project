@@ -4,12 +4,16 @@ import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.GameState;
 import structures.basic.Board;
+import structures.basic.EffectAnimation;
 import structures.basic.Tile;
+import structures.basic.UnitAnimationType;
 import structures.basic.players.Player;
 import structures.basic.unittypes.BetterUnit;
 import structures.basic.unittypes.Unit;
 import structures.basic.unittypes.Wraithling;
 import structures.logic.CombatLogic;
+import utils.BasicObjectBuilders;
+import utils.StaticConfFiles;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,12 +32,18 @@ public class DarkTerminus extends Spell {
         }
         return targets;
     }
+
     public void cast(ActorRef out, GameState gameState,
                      Player player, Tile clickedTile,
                      Board board, int cardIndex) {
+        BasicCommands.playUnitAnimation(out, player.getAvatar(), UnitAnimationType.channel);
+        EffectAnimation effect = BasicObjectBuilders.loadEffect(StaticConfFiles.f1_martyrdom);
+        try { Thread.sleep(BasicCommands.playEffectAnimation(out, effect, clickedTile)); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        BasicCommands.playUnitAnimation(out, player.getAvatar(), UnitAnimationType.idle);
+
         Unit enemy = clickedTile.getUnit();
         CombatLogic.death(out, gameState, enemy);
-        Wraithling summon = Unit.createWraithling(out, player, gameState);
         Unit.summonWraithling(out, clickedTile, player, gameState);
     }
 }

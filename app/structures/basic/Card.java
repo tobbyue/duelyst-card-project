@@ -10,7 +10,9 @@ import structures.basic.players.Player;
 import structures.basic.spells.*;
 import structures.basic.unittypes.Unit;
 import structures.logic.BoardLogic;
+import structures.basic.EffectAnimation;
 import utils.BasicObjectBuilders;
+import utils.StaticConfFiles;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -176,9 +178,9 @@ public class Card {
 			clickedTile.setUnit(summonedUnit);
 
 			BasicCommands.drawUnit(out, summonedUnit, clickedTile);
-			for (int i = 0; i < 30; i++) {
-				BoardLogic.blink();
-			}
+			EffectAnimation summonEffect = BasicObjectBuilders.loadEffect(StaticConfFiles.f1_summon);
+			try { Thread.sleep(BasicCommands.playEffectAnimation(out, summonEffect, clickedTile)); }
+			catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 			BasicCommands.setUnitAttack(out, summonedUnit, summonedUnit.getAttack());
 			for (int i = 0; i < 10; i++) {
 				BoardLogic.blink();

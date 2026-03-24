@@ -9,9 +9,12 @@ import structures.basic.players.HumanPlayer;
 import structures.basic.players.Player;
 import structures.basic.unittypes.BetterUnit;
 import structures.basic.unittypes.Unit;
+import structures.basic.EffectAnimation;
 import structures.logic.AI;
 import structures.logic.BoardLogic;
 import structures.logic.CombatLogic;
+import utils.BasicObjectBuilders;
+import utils.StaticConfFiles;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -64,9 +67,9 @@ public class GameState {
 		avatar.setPositionByTile(tile);
 
 		BasicCommands.drawUnit(out, avatar, tile);
-		for (int i = 0; i < 30; i++) {
-			BoardLogic.blink();
-		}
+		EffectAnimation summonEffect = BasicObjectBuilders.loadEffect(StaticConfFiles.f1_summon);
+		try { Thread.sleep(BasicCommands.playEffectAnimation(out, summonEffect, tile)); }
+		catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 		BasicCommands.setUnitHealth(out, avatar, avatar.getHealth());
 		for (int i = 0; i < 30; i++) {
 			BoardLogic.blink();
