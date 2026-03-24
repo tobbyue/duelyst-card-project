@@ -14,9 +14,7 @@ import utils.BasicObjectBuilders;
 import static org.junit.Assert.*;
 
 /**
- * JUnit tests for Story Card #11: AI Attacking.
- * <p>
- * The AI should attack adjacent enemy units when able, and only perform legal attacks.
+ * JUnit tests for Story Card #11 (AI Attacking) and Story Card #15 (AI Movement).
  *
  * @author Minghao
  */
@@ -40,9 +38,10 @@ public class AITest {
         opponent.getAvatar().hasMoved = false;
     }
 
+    // ──────────────────── SC#11: AI Attacking ────────────────────
+
     @Test
     public void AIAttacksAdjacentEnemy() {
-        // Summon a P1 unit adjacent to the AI avatar
         Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
         player.getHand().add(card);
         Tile summonTile = gs.getBoard().getTile(6, 2);
@@ -52,16 +51,14 @@ public class AITest {
         assertNotNull("Player unit should be on tile", target);
         int hpBefore = target.getHealth();
 
-        // Run AI attack
         AI.AILogic.attack(null, gs);
 
-        // AI avatar is adjacent to the summoned unit and should have attacked it
-        assertTrue("Target HP should decrease after AI attack", target.getHealth() < hpBefore || target.getCurrentTile() == null);
+        assertTrue("Target HP should decrease after AI attack",
+                target.getHealth() < hpBefore || target.getCurrentTile() == null);
     }
 
     @Test
     public void AIDoesNotAttackAllies() {
-        // Summon a second AI unit adjacent to AI avatar
         Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
         opponent.getHand().add(card);
         Tile allyTile = gs.getBoard().getTile(6, 2);
@@ -78,7 +75,6 @@ public class AITest {
 
     @Test
     public void AIOnlyAttacksWhenInRange() {
-        // P1 unit far away from all AI units — no attacks should happen
         Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
         player.getHand().add(card);
         Tile farTile = gs.getBoard().getTile(0, 0);
@@ -95,7 +91,6 @@ public class AITest {
 
     @Test
     public void AIUnitDoesNotAttackTwice() {
-        // Place a P1 unit next to AI avatar
         Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
         player.getHand().add(card);
         Tile summonTile = gs.getBoard().getTile(6, 2);
@@ -107,10 +102,70 @@ public class AITest {
         AI.AILogic.attack(null, gs);
         int hpAfterFirst = target.isDead() ? 0 : target.getHealth();
 
-        // Second call — avatar hasAttacked = true, should not attack again
         if (!target.isDead()) {
             AI.AILogic.attack(null, gs);
             assertEquals("Unit should not attack again after hasAttacked = true", hpAfterFirst, target.getHealth());
         }
+    }
+
+    // ──────────────────── SC#15: AI Movement ────────────────────
+
+    @Test
+    public void AIMovesTowardsEnemy() {
+        // P1 unit at (4,2): not adjacent to AI avatar at (7,2), but reachable within 2 steps
+        Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
+        player.getHand().add(card);
+        Tile p1Tile = gs.getBoard().getTile(4, 2);
+        player.useCard(null, gs, 0, p1Tile, 0);
+
+        Tile avatarTileBefore = opponent.getAvatar().getCurrentTile();
+        AI.AILogic.moveUnit(null, gs);
+        Tile avatarTileAfter = opponent.getAvatar().getCurrentTile();
+
+        assertNotEquals("AI avatar should have moved towards the enemy", avatarTileBefore, avatarTileAfter);
+    }
+
+    @Test
+    public void AIDoesNotMoveWhenAlreadyInAttackRange() {
+        // P1 unit at (6,2): directly adjacent to AI avatar at (7,2) — no move needed
+        Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
+        player.getHand().add(card);
+        Tile adjacentTile = gs.getBoard().getTile(6, 2);
+        player.useCard(null, gs, 0, adjacentTile, 0);
+
+        Tile avatarTileBefore = opponent.getAvatar().getCurrentTile();
+        AI.AILogic.moveUnit(null, gs);
+        Tile avatarTileAfter = opponent.getAvatar().getCurrentTile();
+
+        assertEquals("AI avatar should not move when already adjacent to enemy", avatarTileBefore, avatarTileAfter);
+    }
+
+    @Test
+    public void AIUnitDoesNotMoveTwice() {
+        // P1 unit at (4,2), AI avatar at (7,2)
+        Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
+        player.getHand().add(card);
+        player.useCard(null, gs, 0, gs.getBoard().getTile(4, 2), 0);
+
+        AI.AILogic.moveUnit(null, gs);
+        Tile afterFirstMove = opponent.getAvatar().getCurrentTile();
+
+        AI.AILogic.moveUnit(null, gs);
+        Tile afterSecondMove = opponent.getAvatar().getCurrentTile();
+
+        assertEquals("AI unit should not move again after hasMoved = true", afterFirstMove, afterSecondMove);
+    }
+
+    @Test
+    public void AIMovesCloserToNearestEnemy() {
+        // P1 unit at (4,2), AI avatar at (7,2) — AI should end up closer (x < 7)
+        Card card = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 1, Card.class);
+        player.getHand().add(card);
+        player.useCard(null, gs, 0, gs.getBoard().getTile(4, 2), 0);
+
+        AI.AILogic.moveUnit(null, gs);
+        int xAfter = opponent.getAvatar().getCurrentTile().getTilex();
+
+        assertTrue("AI avatar should have moved closer (x < 7)", xAfter < 7);
     }
 }
