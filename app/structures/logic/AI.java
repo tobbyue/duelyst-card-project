@@ -11,6 +11,7 @@ import structures.basic.players.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.HashSet;
 
 public class AI {
 
@@ -30,6 +31,39 @@ public class AI {
 
         public void checkSummon() {
             // TODO: implement later
+        }
+
+        /**
+         * SC#17: AI Spell Usage.
+         * Plays all affordable spell cards in the AI's hand that have at least one
+         * valid target. Keeps trying until no more spells can be played this turn.
+         *
+         * @author Minghao
+         */
+        public static void castSpells(ActorRef out, GameState gs) {
+            Player ai = gs.getPlayer2();
+            boolean played = true;
+
+            while (played) {
+                played = false;
+                List<structures.basic.Card> currentHand = new ArrayList<>(ai.getHand());
+                for (structures.basic.Card card : currentHand) {
+                    if (card.isCreature()) continue;
+                    if (card.getSpell() == null) continue;
+                    if (ai.getMana() < card.getManacost()) continue;
+
+                    Set<Tile> targets = card.getTargets(ai, gs.getBoard());
+                    if (targets == null || targets.isEmpty()) continue;
+
+                    int handIndex = ai.getHand().indexOf(card);
+                    if (handIndex == -1) continue;
+
+                    Tile target = targets.iterator().next();
+                    ai.useCard(out, gs, handIndex, target, card.getManacost());
+                    played = true;
+                    break; // hand changed — restart the loop
+                }
+            }
         }
 
         /**
@@ -124,6 +158,7 @@ public class AI {
             // AI requires a live WebSocket connection; skip during unit tests
             if (out == null) return;
 
+            castSpells(out, gs);
             moveUnit(out, gs);
             attack(out, gs);
             gs.endTurn(out, p2, p1);

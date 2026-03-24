@@ -47,6 +47,8 @@ public class BasicObjectBuilders {
 			}
 
 			card.setId(id);
+			card.setSpell();
+			if (card.getSpell() != null) card.getSpell().setCard(card);
 			return card;
 		} catch (Exception e) {
 			e.printStackTrace();

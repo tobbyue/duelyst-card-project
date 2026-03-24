@@ -12,6 +12,7 @@ import structures.logic.AI;
 import utils.BasicObjectBuilders;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeNotNull;
 
 /**
  * JUnit tests for Story Card #11 (AI Attacking) and Story Card #15 (AI Movement).
@@ -154,6 +155,82 @@ public class AITest {
         Tile afterSecondMove = opponent.getAvatar().getCurrentTile();
 
         assertEquals("AI unit should not move again after hasMoved = true", afterFirstMove, afterSecondMove);
+    }
+
+    // ──────────────────── SC#17: AI Spell Usage ────────────────────
+
+    @Test
+    public void AICastsSpellOnValidTarget() {
+        // Give AI a Truestrike (costs 1 mana) and enough mana to play it
+        Card truestrike = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_a1_c_s_truestrike.json", 1, Card.class);
+        assumeNotNull("Truestrike spell must load correctly", truestrike.getSpell());
+        opponent.getHand().add(truestrike);
+        opponent.setMana(truestrike.getManacost());
+
+        // Ensure there is at least one valid target (P1 avatar is already on board)
+        AI.AILogic.castSpells(null, gs);
+
+        // Spell was cast: card removed from hand and mana deducted
+        assertEquals("Truestrike should have been removed from hand after casting", 0, opponent.getHand().size());
+        assertEquals("AI mana should be 0 after casting", 0, opponent.getMana());
+    }
+
+    @Test
+    public void AICastsBeamshockOnValidTarget() {
+        // Beamshock targets enemy non-avatar units — costs 1 mana
+        Card beamshock = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_5_c_s_beamshock.json", 1, Card.class);
+        assumeNotNull("Beamshock spell must load correctly", beamshock.getSpell());
+        opponent.getHand().add(beamshock);
+        opponent.setMana(beamshock.getManacost());
+
+        // Place a P1 non-avatar unit
+        Card unitCard = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 2, Card.class);
+        player.getHand().add(unitCard);
+        Tile targetTile = gs.getBoard().getTile(3, 2);
+        player.useCard(null, gs, 0, targetTile, 0);
+        Unit target = targetTile.getUnit();
+        assertNotNull(target);
+
+        AI.AILogic.castSpells(null, gs);
+
+        // Beamshock sets hasMoved and hasAttacked to true on the target
+        assertTrue("Beamshocked unit should be stunned (hasMoved=true)", target.hasMoved);
+        assertTrue("Beamshocked unit should be stunned (hasAttacked=true)", target.hasAttacked);
+    }
+
+    @Test
+    public void AIDoesNotCastSpellWithoutMana() {
+        Card truestrike = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_a1_c_s_truestrike.json", 1, Card.class);
+        opponent.getHand().add(truestrike);
+        opponent.setMana(0); // no mana
+
+        Card unitCard = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_4_c_u_saberspine_tiger.json", 2, Card.class);
+        player.getHand().add(unitCard);
+        Tile targetTile = gs.getBoard().getTile(3, 2);
+        player.useCard(null, gs, 0, targetTile, 0);
+        Unit target = targetTile.getUnit();
+        int hpBefore = target.getHealth();
+
+        AI.AILogic.castSpells(null, gs);
+
+        assertEquals("Spell should not be cast without enough mana", hpBefore, target.getHealth());
+        assertEquals("Spell card should remain in hand", 1, opponent.getHand().size());
+    }
+
+    @Test
+    public void AIDoesNotCastSpellWithoutValidTarget() {
+        // Truestrike targets enemy units — but no P1 units on board (only avatar)
+        // True Strike CAN target the avatar, so use Beamshock which excludes avatars
+        Card beamshock = BasicObjectBuilders.loadCard("conf/gameconfs/cards/2_5_c_s_beamshock.json", 1, Card.class);
+        assumeNotNull(beamshock.getSpell());
+        opponent.getHand().add(beamshock);
+        opponent.setMana(9);
+
+        // No non-avatar P1 units on the board
+        int handSizeBefore = opponent.getHand().size();
+        AI.AILogic.castSpells(null, gs);
+
+        assertEquals("Spell should not be cast when no valid targets exist", handSizeBefore, opponent.getHand().size());
     }
 
     @Test
