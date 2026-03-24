@@ -9,7 +9,7 @@ import structures.basic.Card;
 import structures.basic.EffectAnimation;
 import structures.basic.players.Player;
 import structures.basic.Tile;
-import structures.basic.Unit;
+import structures.basic.unittypes.Unit;
 import structures.basic.UnitAnimation;
 import structures.basic.UnitAnimationType;
 

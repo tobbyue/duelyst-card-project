@@ -8,7 +8,7 @@ import java.util.Set;
 
 import structures.basic.Card;
 import structures.basic.Tile;
-import structures.basic.Unit;
+import structures.basic.unittypes.Unit;
 
 /**
  * This is a utility class that builds a large set of image URLs

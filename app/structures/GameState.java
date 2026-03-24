@@ -1,106 +1,142 @@
 package structures;
 
 import akka.actor.ActorRef;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import commands.BasicCommands;
+import structures.basic.Board;
 import structures.basic.Tile;
-import structures.basic.Unit;
-
-import structures.basic.players.*;
+import structures.basic.players.AIPlayer;
+import structures.basic.players.HumanPlayer;
+import structures.basic.players.Player;
+import structures.basic.unittypes.BetterUnit;
+import structures.basic.unittypes.Unit;
 import structures.logic.AI;
+import structures.logic.BoardLogic;
+import structures.logic.CombatLogic;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import structures.basic.Tile;
-import structures.basic.Unit;
-
 
 /**
  * This class can be used to hold information about the on-going game.
- * It's created with the GameActor.
- * 
- * @author Dr. Richard McCreadie
- *
+ * Its created with the GameActor.
  */
-
 public class GameState {
 
-	
 	public boolean gameInitalised = false;
-	
 	public boolean something = false;
 
-	public boolean player1Turn = true; // Tracks current active turn
+	public HumanPlayer player1 =  new HumanPlayer();
+	public AIPlayer player2 = new AIPlayer();
+	public Board board = new Board();
+	public Unit selectedUnit = null;
+	public boolean player1Turn = true;
+
+	public int turnCount = 1;
+
+	/** 1-indexed hand position of the selected card, or null if none selected */
+	public Integer selectedHandPosition = null;
+
+	/** Next unique unit id for summoned units. */
+	private int nextUnitId = 0;
+
+	/** List of currently highlighted tiles. Used for validation.*/
+	public Set<Tile> highlightedTiles = new HashSet<Tile>();
+
+	/** Movement state */
+	public Unit movingUnit = null;
+	public Tile moveTargetTile = null;
+	public boolean unitMoving = false;
+
+	public Player getPlayer1() { return player1; }
+
+	public Player getPlayer2() { return player2; }
+
+	public Board getBoard() { return board; }
+
+	public Unit getSelectedUnit() { return selectedUnit; }
+
+	public int getNextUnitId() { return nextUnitId++; }
 
 
-	// Player classes
-	public HumanPlayer player = new HumanPlayer();
-	public AIPlayer ai = new AIPlayer();
+	public void placeAvatar(ActorRef out, BetterUnit avatar, int x, int y) {
+		Tile tile = this.board.getTile(x, y);
+		tile.setUnit(avatar);
+		avatar.setPositionByTile(tile);
 
-    // Selected unit
-    public Unit selectedUnit = null;
+		BasicCommands.drawUnit(out, avatar, tile);
+		for (int i = 0; i < 30; i++) {
+			BoardLogic.blink();
+		}
+		BasicCommands.setUnitHealth(out, avatar, avatar.getHealth());
+		for (int i = 0; i < 30; i++) {
+			BoardLogic.blink();
+		}
+		BasicCommands.setUnitAttack(out, avatar, avatar.getAttack());
+	}
 
-    // Tiles and units captured from CommandDemo
-    public Tile[][] board = new Tile[10][6]; // use indices 1..9 and 1..5
-    public Map<Integer, Unit> unitsById = new HashMap<>();
-    public Map<String, Integer> occupiedByUnitId = new HashMap<>(); // "x,y" -> unitId
+	/**
+	 * Combat damage based on attacker attack stat.
+	 */
+	public void dealDamage(ActorRef out, Unit attacker, Unit target) {
+		if (attacker == null || target == null) return;
 
-    // For demo: identify player avatars by spawn tiles
-    public Integer p1AvatarId = null; // unit on (2,3)
-    public Integer p2AvatarId = null; // unit on (8,3)
+		int damage = attacker.getAttack();
 
-    // Highlight caches
-    public Set<String> validMoveTiles = new HashSet<>();
-    public Set<String> validAttackTiles = new HashSet<>();
+		if (damage <= 0) {
+			BasicCommands.addPlayer1Notification(out, "Attacker has 0 attack.", 2);
+			return;
+		}
 
-    // Animation lock
-    public boolean isAnimating = false;
+		dealDirectDamage(out, target, damage);
+	}
 
-    public void advanceTurn(ActorRef out, HumanPlayer player1, AIPlayer player2) {
-		player1Turn = !player1Turn;
-		player1.setMana(out,0);
-		player2.setMana(out,0);
-		if(player1Turn) {
-			System.out.println("Player 1 Turn");
-		} else {
-			System.out.println("Player 2 turn");
-			AI.AILogic.runAI(out, this, player1, player2);
+	/**
+	 * Direct spell / combat damage.
+	 */
+	public void dealDirectDamage(ActorRef out, Unit target, int damage) {
+		if (target == null || damage <= 0) return;
+
+		int newHealth = target.getHealth() - damage;
+		target.setHealth(out, newHealth);
+
+		BasicCommands.setUnitHealth(out, target, target.getHealth());
+
+		if (target == player1.getAvatar()) {
+			player1.setHealth(target.getHealth());
+			BasicCommands.setPlayer1Health(out, player1);
+		} else if (target == player2.getAvatar()) {
+			player2.setHealth(target.getHealth());
+			BasicCommands.setPlayer2Health(out, player2);
+		}
+
+		if (target.isDead()) {
+			target.die(out);
 		}
 	}
 
 
- // Selected unit
-    public Unit selectedUnit = null;
+	public void endTurn(ActorRef out, Player playerEndingTurn, Player playerStartingTurn) {
+		if (!player1Turn) {
+			turnCount++;
+		}
+		player1Turn = !player1Turn;
+		// Refresh mana
+		int startingMana = Math.min(turnCount + 1, Player.getMaxMana());
+		playerStartingTurn.setMana(out, startingMana);
+		playerEndingTurn.setMana(out, 0);
 
-    //TODO Check wtf is going on here
-    public Map<Integer, Unit> unitsById = new HashMap<>();
-    public Map<String, Integer> occupiedByUnitId = new HashMap<>(); // "x,y" -> unitId
+		// Draw card: the ending player draws 1 card at the end of their turn (for next turn)
+		playerEndingTurn.drawCardIntoHand();
 
-    // For demo: identify player avatars by spawn tiles
-    //TODO I don't think this is needed?
-    public Integer p1AvatarId = null; // unit on (2,3)
-    public Integer p2AvatarId = null; // unit on (8,3)
+		// Reset flags
+		playerEndingTurn.getAvatar().hasAttacked = false; playerEndingTurn.getAvatar().hasMoved = false;
+		for (Unit unit : playerEndingTurn.getUnitList().values()) {
+			unit.hasAttacked = false; unit.hasMoved = false;
+		}
 
-    // Highlight caches
-    public Set<String> validMoveTiles = new HashSet<>();
-    public Set<String> validAttackTiles = new HashSet<>();
-
-    // Animation lock
-    public boolean isAnimating = false;
-
-    //TODO These shouldn't be here
-    public static String key(int x, int y) { return x + "," + y; }
-
-    public void clearHighlights() {
-        validMoveTiles.clear();
-        validAttackTiles.clear();
-    }
-
-    public void clearSelection() {
-        selectedUnit = null;
-    }
+		// Run AI on AI turn
+		if (playerEndingTurn instanceof HumanPlayer) {
+			AI.AILogic.runAI(out, this, player1, player2);
+		}
+	}
 }

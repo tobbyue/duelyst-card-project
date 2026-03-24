@@ -3,7 +3,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "ITSD Card Game 25-26",
     version := "1.1",
-    scalaVersion := "2.13.1",
+    scalaVersion := "2.13.12",
     // https://github.com/sbt/junit-interface
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v"),
     libraryDependencies ++= Seq(
@@ -24,9 +24,19 @@ lazy val root = (project in file("."))
     libraryDependencies += "junit" % "junit" % "4.13.2",
     libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep"),
     LessKeys.compress := true,
+    Compile / unmanagedSources / excludeFilter ~= (_ || new SimpleFileFilter(_.getName.startsWith("import React"))),
     javacOptions ++= Seq(
+      "--release", "11",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
       "-Werror"
-    )
+    ),
+    // Allow Guice/CGLIB to use reflection on java.lang internals (required for Java 16+)
+    javaOptions ++= Seq(
+      "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+      "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+      "--add-opens", "java.base/java.util=ALL-UNNAMED",
+      "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED"
+    ),
+    fork := true
   )

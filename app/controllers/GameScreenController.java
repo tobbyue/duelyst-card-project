@@ -59,4 +59,3 @@ public class GameScreenController extends Controller {
 		return Props.create(GameActor.class, out); // calls the constructor for Game Actor
 	}
 }
-

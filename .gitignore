@@ -2,6 +2,13 @@
 # Main Exclusions
 # ---------------------------------------
 
+# macOS system files
+.DS_Store
+
+# Project reference material (PDFs) — not part of the codebase
+Game Information/
+Project Assignment/
+
 # Java Build Target
 target/**
 
@@ -12,13 +19,17 @@ app/assets/**
 null/**
 
 # SBT Components
+.sbtopts
+build.sbt
 logs/**
-project/**
-public/**
+project/target/**
+project/project/**
+public/images/**
 sbt-dist/**
 scripts/**
 sbt
 sbt.bat
+.bsp/
 
 # ---------------------------------------
 # Additional Files from IDE's
@@ -68,3 +79,6 @@ local.properties
 .scala_dependencies
 .worksheet
 /bin/
+.DS_Store
+.claude/**
+*.iml

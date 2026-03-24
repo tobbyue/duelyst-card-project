@@ -3,10 +3,9 @@ package demo;
 import akka.actor.ActorRef;
 import commands.BasicCommands;
 import structures.basic.Card;
-import structures.basic.EffectAnimation;
-import structures.basic.Player;
+import structures.basic.players.Player;
 import structures.basic.Tile;
-import structures.basic.Unit;
+import structures.basic.unittypes.Unit;
 import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
 import utils.OrderedCardLoader;
@@ -177,7 +176,7 @@ public class CommandDemo {
 		// Mana
 		for (int m = 0; m<10; m++) {
 			BasicCommands.addPlayer1Notification(out, "setPlayer1Mana ("+m+")", 1);
-			humanPlayer.setMana(m);
+			humanPlayer.setMana(out, m);
 			BasicCommands.setPlayer1Mana(out, humanPlayer);
 			try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
 		}
@@ -185,7 +184,7 @@ public class CommandDemo {
 		// Mana
 		for (int m = 0; m<10; m++) {
 			BasicCommands.addPlayer1Notification(out, "setPlayer2Mana ("+m+")", 1);
-			aiPlayer.setMana(m);
+			aiPlayer.setMana(out, m);
 			BasicCommands.setPlayer2Mana(out, aiPlayer);
 			try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
 		}

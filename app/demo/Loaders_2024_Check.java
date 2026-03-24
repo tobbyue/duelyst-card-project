@@ -9,7 +9,7 @@ import commands.BasicCommands;
 import structures.basic.Card;
 import structures.basic.EffectAnimation;
 import structures.basic.Tile;
-import structures.basic.Unit;
+import structures.basic.unittypes.Unit;
 import structures.basic.UnitAnimationType;
 import utils.BasicObjectBuilders;
 import utils.OrderedCardLoader;
