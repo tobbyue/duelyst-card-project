@@ -156,7 +156,7 @@ public class Player {
 		int newMana = mana - manaCost;
 		this.setMana(out, newMana);
 		Card card = hand.get(cardIndex);
-
+		gameState.animationInProgress = true;
 		if (card.isCreature()) {
 			card.summon(out, gameState, this, clickedTile);
 		} else {
@@ -164,6 +164,7 @@ public class Player {
 		}
 		BoardLogic.clearSelection(out, gameState.board);
 		this.getHand().remove(cardIndex);
+		gameState.animationInProgress = false;
 	}
 
 

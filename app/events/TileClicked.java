@@ -41,7 +41,7 @@ public class TileClicked implements EventProcessor {
             BasicCommands.addPlayer1Notification(out, "The game is over.", 2);
             return;
         }
-        if (!gameState.player1Turn || gameState.unitMoving)
+        if (!gameState.player1Turn || gameState.unitMoving || gameState.animationInProgress)
             return;
 
         int tilex = message.get("tilex").asInt();
