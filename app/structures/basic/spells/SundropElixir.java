@@ -41,7 +41,7 @@ public class SundropElixir extends Spell {
             BasicCommands.addPlayer1Notification(out, "No valid tiles!", 2);
         }
         for (Tile tile : validTargets) {
-            BasicCommands.drawTile(out, tile, 2);
+            BasicCommands.drawTile(out, tile, 1);
             BoardLogic.blink();
         }
     }
