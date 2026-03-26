@@ -59,10 +59,6 @@ public class CombatLogic {
         gameState.animationInProgress = false;
     }
 
-    public static void death(ActorRef out, GameState gameState, Unit unit) {
-        if (unit == null) return;
-        unit.die(out, gameState);
-    }
 
 
 

@@ -179,6 +179,9 @@ public class AI {
             attack(out, gs);
             summonUnits(out, gs);
             castSpells(out, gs);
+            // Allow Rush units summoned above to act
+            moveUnit(out, gs);
+            attack(out, gs);
             try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             gs.endTurn(out, p2, p1);
         }

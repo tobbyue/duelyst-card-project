@@ -27,10 +27,7 @@ public class SundropElixir extends Spell {
             targets.add(tile);
         }
         // Avatar can also be healed
-        if (player.getAvatar() != null) {
-            Unit avatar = player.getAvatar();
-            targets.add(board.getTile(avatar.getPosition().getTilex(), avatar.getPosition().getTiley()));
-        }
+        targets.add(player.getAvatar().getCurrentTile());
         return targets;
     }
 
