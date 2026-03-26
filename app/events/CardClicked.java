@@ -33,15 +33,8 @@ public class CardClicked implements EventProcessor {
         // Reset card drawn
         gameState.player1.drawHand(out);
 
-        if (gameState.gameOver) {
-            BasicCommands.addPlayer1Notification(out, "The game is over.", 2);
+        if (gameState.gameOver || !gameState.player1Turn || gameState.animationInProgress)
             return;
-        }
-
-        if (!gameState.player1Turn) {
-            BasicCommands.addPlayer1Notification(out, "It is not your turn.", 2);
-            return;
-        }
 
         int handPosition = message.get("position").asInt(); // 1-indexed
 

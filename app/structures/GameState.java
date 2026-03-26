@@ -58,6 +58,7 @@ public class GameState {
 	public Unit movingUnit = null;
 	public Tile moveTargetTile = null;
 	public boolean unitMoving = false;
+	public boolean animationInProgress = false;
 
 	/**
 	 * Pending move-then-attack state for story #30
@@ -176,6 +177,7 @@ public class GameState {
 		movingUnit = null;
 		moveTargetTile = null;
 		unitMoving = false;
+
 
 		// Mana transfer
 		int startingMana = Math.min((int) turnCount + 1, Player.getMaxMana());

@@ -20,7 +20,7 @@ public class CombatLogic {
      * 3) otherwise defender may counterattack once per turn
      */
     public static void resolveCombat(ActorRef out, GameState gameState, Unit attacker, Unit defender) {
-
+        gameState.animationInProgress = true;
         // Active attack — wait for each animation to finish before sending the next
         try {
             Thread.sleep(BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.attack) / 4 * 3);
@@ -56,18 +56,9 @@ public class CombatLogic {
                 BasicCommands.playUnitAnimation(out, attacker, UnitAnimationType.idle);
             }
         }
-
-        return bestTile;
+        gameState.animationInProgress = false;
     }
 
-    public static void death(ActorRef out, GameState gameState, Unit unit) {
-        if (unit == null) return;
-        unit.die(out);
-        Player owner = unit.getOwner();
-        if (owner != null) {
-            owner.getUnitList().remove(unit.getId());
-        }
-    }
 
     /**
      * Finds the best tile to move to in order to attack the given enemy tile.

@@ -69,7 +69,7 @@ public class BetterUnit extends Unit {
 	 */
 	@Override
 	public void takeDamage(ActorRef out, GameState gameState, int damage) {
-		super.takeDamage(out, damage);
+		super.takeDamage(out, gameState, damage);
 		this.owner.setHealth(out, this.health);
 
 		if (!isDead()) {

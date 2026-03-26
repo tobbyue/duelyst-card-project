@@ -298,9 +298,6 @@ public class Unit {
 	// ////////// BASIC METHODS ////////////
 
 	@JsonIgnore
-	public void takeDamage(ActorRef out, int damage) {
-		takeDamage(out, null, damage);
-	}
 
 	/**
 	 * This command automatically calls setUnitHealth to the
